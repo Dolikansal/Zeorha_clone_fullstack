@@ -1,17 +1,20 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { UserButton, useUser } from "@clerk/clerk-react";
 
 const Menu = () => {
   const [selectedMenu, setSelectedMenu] = useState(0);
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const { user, isLoaded } = useUser();
+  const location = useLocation();
 
-  const handleMenuClick = (index) => {
-    setSelectedMenu(index);
-  };
-
-  const handleProfileClick = () => {
-    setIsProfileDropdownOpen(!isProfileDropdownOpen);
-  };
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('/orders')) setSelectedMenu(1);
+    else if (path.includes('/holdings')) setSelectedMenu(2);
+    else if (path.includes('/positions')) setSelectedMenu(3);
+    else if (path.includes('/funds')) setSelectedMenu(4);
+    else setSelectedMenu(0); 
+  }, [location]);
 
   const containerStyle = {
     display: "flex",
@@ -29,6 +32,7 @@ const Menu = () => {
     margin: "0",
     display: "flex",
     alignItems: "center",
+    marginLeft : "235px"
   };
 
   const baseMenuStyle = {
@@ -38,7 +42,9 @@ const Menu = () => {
     margin: "0",
     padding: "8px 0",
     transition: "all 0.3s ease",
-    cursor: "pointer"
+    cursor: "pointer",
+    textDecoration: "none",
+    display: "block"
   };
 
   const activeMenuStyle = {
@@ -51,125 +57,57 @@ const Menu = () => {
   const profileStyle = {
     display: "flex",
     alignItems: "center",
-    cursor: "pointer",
-    borderRadius: "8px",
-    transition: "all 0.3s ease"
+    gap: "15px"
   };
 
-  const avatarStyle = {
-    width: "35px",
-    height: "35px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg, #2196f3 0%, #1976d2 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "white",
-    fontWeight: "600",
-    fontSize: "12px"
-  };
-
-  const usernameStyle = {
-    color: "#e3f2fd",
-    fontWeight: "500",
-    fontSize: "14px",
-    margin: "0"
-  };
+  if (!isLoaded) {
+    return (
+      <div style={containerStyle}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="menu-container" style={containerStyle}>
-      <Link 
-        to="/" 
-        style={{ textDecoration: "none" }}
-        onClick={() => setSelectedMenu(-1)} // Reset menu selection
-      >
-        <h2 className="text-primary mt-2" style={{ margin: 0, cursor: "pointer" }}>
-          Zerodha
-        </h2>
-      </Link>
-
       <div className="menus" style={menusStyle}>
         <ul style={menuListStyle}>
-          {/* home */}
           <li>
-            <Link
-              style={{ textDecoration: "none" }}
-              to="/"
-              onClick={() => handleMenuClick(5)}
-            >
-              <p style={selectedMenu === 5 ? activeMenuStyle : baseMenuStyle}>
-                Home
-              </p>
+            <Link to="/dashboard" style={selectedMenu === 0 ? activeMenuStyle : baseMenuStyle}>
+              Dashboard
             </Link>
           </li>
           <li>
-            <Link
-              style={{ textDecoration: "none" }}
-              to="/dashboard"  // Changed from "/"
-              onClick={() => handleMenuClick(0)}
-            >
-              <p style={selectedMenu === 0 ? activeMenuStyle : baseMenuStyle}>
-                Dashboard
-              </p>
+            <Link to="/dashboard/orders" style={selectedMenu === 1 ? activeMenuStyle : baseMenuStyle}>
+              Orders
             </Link>
           </li>
           <li>
-            <Link
-              style={{ textDecoration: "none" }}
-              to="/dashboard/orders"  // Changed from "/orders"
-              onClick={() => handleMenuClick(1)}
-            >
-              <p style={selectedMenu === 1 ? activeMenuStyle : baseMenuStyle}>
-                Orders
-              </p>
+            <Link to="/dashboard/holdings" style={selectedMenu === 2 ? activeMenuStyle : baseMenuStyle}>
+              Holdings
             </Link>
           </li>
           <li>
-            <Link
-              style={{ textDecoration: "none" }}
-              to="/dashboard/holdings"  // Changed from "/holdings"
-              onClick={() => handleMenuClick(2)}
-            >
-              <p style={selectedMenu === 2 ? activeMenuStyle : baseMenuStyle}>
-                Holdings
-              </p>
+            <Link to="/dashboard/positions" style={selectedMenu === 3 ? activeMenuStyle : baseMenuStyle}>
+              Positions
             </Link>
           </li>
           <li>
-            <Link
-              style={{ textDecoration: "none" }}
-              to="/dashboard/positions"  // Changed from "/positions"
-              onClick={() => handleMenuClick(3)}
-            >
-              <p style={selectedMenu === 3 ? activeMenuStyle : baseMenuStyle}>
-                Positions
-              </p>
-            </Link>
-          </li>
-          <li>
-            <Link
-              style={{ textDecoration: "none" }}
-              to="/dashboard/funds"  // Changed from "/funds"
-              onClick={() => handleMenuClick(4)}
-            >
-              <p style={selectedMenu === 4 ? activeMenuStyle : baseMenuStyle}>
-                Funds
-              </p>
+            <Link to="/dashboard/funds" style={selectedMenu === 4 ? activeMenuStyle : baseMenuStyle}>
+              Funds
             </Link>
           </li>
         </ul>
         
-        <div 
-          className="profile" 
-          style={profileStyle}
-          onClick={handleProfileClick}
-        >
-          <div className="avatar" style={avatarStyle}>ZU</div>
-          <p className="username" style={usernameStyle}>USERID</p>
+        <div className="profile" style={profileStyle}>
+          <span style={{ color: "#e3f2fd", fontWeight: "500", fontSize: "14px" }}>
+            Welcome, {user?.firstName || 'Trader'}
+          </span>
+          <UserButton afterSignOutUrl="/" />
         </div>
       </div>
     </div>
   );
 };
 
-export default Menu; 
+export default Menu;
